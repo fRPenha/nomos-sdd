@@ -1,0 +1,8 @@
+{
+  "schema": "nomos.demand/v1",
+  "id": "__DEMAND_ID__",
+  "title": "__DEMAND_TITLE__",
+  "profile": "__PROFILE__",
+  "created_at": "__DATE__",
+  "status": "draft"
+}

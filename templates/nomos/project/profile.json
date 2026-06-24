@@ -1,0 +1,5 @@
+{
+  "schema": "nomos.profile/v1",
+  "profile": "__PROFILE__",
+  "updated_at": "__DATE__"
+}

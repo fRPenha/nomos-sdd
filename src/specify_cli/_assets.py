@@ -101,6 +101,25 @@ def _locate_bundled_preset(preset_id: str) -> Path | None:
     return None
 
 
+def _locate_bundled_nomos_templates() -> Path | None:
+    """Return the path to bundled Nomos templates, or ``None``.
+
+    Checks the wheel's core_pack first, then falls back to the source-checkout
+    ``templates/nomos/`` directory.
+    """
+    core = _locate_core_pack()
+    if core is not None:
+        candidate = core / "nomos" / "templates"
+        if candidate.is_dir():
+            return candidate
+
+    candidate = _repo_root() / "templates" / "nomos"
+    if candidate.is_dir():
+        return candidate
+
+    return None
+
+
 def get_speckit_version() -> str:
     """Get current spec-kit version."""
     try:
