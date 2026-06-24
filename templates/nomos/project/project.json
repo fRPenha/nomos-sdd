@@ -1,0 +1,7 @@
+{
+  "schema": "nomos.project/v1",
+  "project_name": "__PROJECT_NAME__",
+  "profile": "__PROFILE__",
+  "initialized_at": "__DATE__",
+  "workspace_root": ".nomos"
+}

@@ -619,6 +619,13 @@ from .commands.bundle import register as _register_bundle_cmds  # noqa: E402
 _register_bundle_cmds(app)
 
 
+# ===== Nomos Commands =====
+
+# Project-local Nomos workspace (specify nomos ...).
+from .commands.nomos import register as _register_nomos_cmds  # noqa: E402
+_register_nomos_cmds(app)
+
+
 # ===== Workflow Commands =====
 
 workflow_app = typer.Typer(
