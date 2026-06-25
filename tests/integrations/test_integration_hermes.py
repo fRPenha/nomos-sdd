@@ -12,6 +12,8 @@ non-destructive to a developer's real Hermes installation.
 
 from pathlib import Path
 
+import pytest
+
 from specify_cli.integrations import get_integration
 from specify_cli.integrations.manifest import IntegrationManifest
 
@@ -31,6 +33,19 @@ class TestHermesIntegration(SkillsIntegrationTests):
     COMMANDS_SUBDIR = "skills"
     REGISTRAR_DIR = "~/.hermes/skills"
     CONTEXT_FILE = "AGENTS.md"
+
+    @pytest.fixture(autouse=True)
+    def _redirect_home(self, tmp_path, monkeypatch):
+        """Redirect ``Path.home()`` for every inherited/shared Hermes test.
+
+        The shared ``SkillsIntegrationTests`` mixin calls ``i.setup()``
+        directly and does not accept ``monkeypatch`` in its inherited test
+        signatures, so Hermes needs an autouse fixture to keep all those
+        tests hermetic.
+        """
+        home = _fake_home(tmp_path)
+        monkeypatch.setattr(Path, "home", lambda: home)
+        return home
 
     # -- Hermes-specific setup: skills go to ~/.hermes/skills/ -------------
 

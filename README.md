@@ -138,6 +138,75 @@ specify nomos demand create minha-demanda --title "Título da demanda"
 
 Além do identificador técnico da demanda, grava um título legível nos arquivos gerados.
 
+## Como usar o Nomos em outro projeto
+
+O fluxo principal desta fase é:
+
+1. clonar `nomos-sdd` uma vez;
+2. instalar a CLI localmente a partir desse checkout;
+3. usar `specify nomos ...` em qualquer outro repositório Git.
+
+### Fluxo principal com `uv tool install`
+
+Pré-requisitos:
+
+- `uv` instalado;
+- Python 3.11+;
+- um checkout local deste repositório.
+
+Do diretório `nomos-sdd`, você pode instalar com o script de conveniência:
+
+```bash
+./tools/install-nomos-local.sh
+```
+
+No Windows PowerShell:
+
+```powershell
+.\tools\install-nomos-local.ps1
+```
+
+Se preferir rodar o comando diretamente:
+
+```bash
+uv tool install --from /caminho/para/nomos-sdd specify-cli
+```
+
+Depois disso, em outro repositório:
+
+```bash
+cd ~/Projetos/RCA-Navigator
+specify nomos init
+specify nomos demand create minha-demanda
+```
+
+Se você alterar o código local do Nomos e quiser reinstalar a versão do checkout, rode novamente o mesmo comando. Se precisar forçar reinstalação, passe os argumentos suportados pelo `uv tool install`, por exemplo:
+
+```bash
+./tools/install-nomos-local.sh --force
+```
+
+### Alternativa com `pipx install -e`
+
+Se você já usa `pipx`, a alternativa local é:
+
+```bash
+pipx install -e /caminho/para/nomos-sdd
+```
+
+Esse fluxo também expõe `specify` no ambiente do usuário, mas nesta fase ele é apenas a alternativa documentada. O caminho principal recomendado continua sendo `uv tool install --from ...`.
+
+### Fallback com `uv run --project`
+
+Se você não quiser uma instalação persistente, ou estiver depurando o ambiente, use:
+
+```bash
+uv run --project /caminho/para/nomos-sdd specify nomos init
+uv run --project /caminho/para/nomos-sdd specify nomos demand create minha-demanda
+```
+
+Esse fallback funciona sem ativar a `.venv`, mas não é o fluxo principal porque mantém o uso acoplado ao caminho do checkout.
+
 ## Estrutura de diretórios criada
 
 Após `specify nomos init`, a estrutura inicial é:
@@ -304,6 +373,8 @@ nomos demand create ...
 ```
 
 Essa evolução ainda não faz parte desta fase. O foco atual é validar o produto e a estrutura conceitual dentro do fork existente.
+
+Importante: `nomos` não deve surgir como alias trivial de `specify_cli:main`, porque `nomos init` e `specify init` têm semânticas diferentes. Quando essa evolução for tratada, ela deve receber um entrypoint dedicado e manter compatibilidade com `specify nomos`.
 
 ## Roadmap inicial
 
