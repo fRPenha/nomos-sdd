@@ -21,6 +21,17 @@ uvx --from git+https://github.com/github/spec-kit.git specify init . --integrati
 uvx --from git+https://github.com/github/spec-kit.git specify init --here --integration copilot
 ```
 
+## Local Nomos Fallback From a Checkout
+
+If you already have a local `nomos-sdd` checkout but do not want to install it persistently yet, run it directly from that checkout:
+
+```bash
+uv run --project /path/to/nomos-sdd specify nomos init
+uv run --project /path/to/nomos-sdd specify nomos demand create minha-demanda
+```
+
+This is useful for troubleshooting or occasional use. For regular daily use across repositories, prefer the persistent local install described in the main [Installation Guide](../installation.md).
+
 ## When to use persistent installation instead
 
 If you plan to use Spec Kit regularly, a persistent installation is recommended:

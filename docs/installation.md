@@ -13,6 +13,42 @@
 > [!IMPORTANT]
 > The only official, maintained packages for Spec Kit come from the [github/spec-kit](https://github.com/github/spec-kit) GitHub repository. Any packages with the same name available on PyPI (e.g. `specify-cli` on pypi.org) are **not** affiliated with this project and are not maintained by the Spec Kit maintainers. For normal installs, use the GitHub-based commands shown below. For offline or air-gapped environments, locally built wheels created from this repository are also valid.
 
+## Local Nomos From a Checkout
+
+If you are working with this Nomos fork directly and want to use `specify nomos ...` in other repositories without activating the checkout's `.venv`, install the tool from your local clone.
+
+### Primary Flow: `uv tool install --from`
+
+From the local checkout:
+
+```bash
+./tools/install-nomos-local.sh
+```
+
+Or run the underlying command directly:
+
+```bash
+uv tool install --from /path/to/nomos-sdd specify-cli
+```
+
+After installation, go to any other Git repository and run:
+
+```bash
+specify nomos init
+specify nomos demand create my-demand
+```
+
+### Fallback Without Persistent Install
+
+If `uv` is available but you do not want a persistent install yet, use:
+
+```bash
+uv run --project /path/to/nomos-sdd specify nomos init
+uv run --project /path/to/nomos-sdd specify nomos demand create my-demand
+```
+
+This is the fallback path, not the recommended daily workflow.
+
 ### Persistent Installation (Recommended)
 
 Install once and use everywhere. Replace `vX.Y.Z` with a tag from [Releases](https://github.com/github/spec-kit/releases):

@@ -59,3 +59,4 @@ docs/dev
 .github/copilot-instructions.md
 .specify/
 specs/
+.nomos/

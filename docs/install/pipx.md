@@ -14,6 +14,23 @@ pipx install git+https://github.com/github/spec-kit.git@vX.Y.Z
 pipx install git+https://github.com/github/spec-kit.git
 ```
 
+## Install a Local Nomos Checkout
+
+If you cloned `nomos-sdd` locally and want to expose `specify` without activating that checkout's `.venv`, `pipx` can install the repo in editable mode:
+
+```bash
+pipx install -e /path/to/nomos-sdd
+```
+
+After that, from another repository:
+
+```bash
+specify nomos init
+specify nomos demand create minha-demanda
+```
+
+For this Nomos fork, this is the documented alternative path. The primary recommendation remains `uv tool install --from /path/to/nomos-sdd specify-cli`.
+
 ## Verify
 
 ```bash

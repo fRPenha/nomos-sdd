@@ -47,6 +47,31 @@ specify --help
 
 Re-running after code edits requires no reinstall because of editable mode.
 
+### 3a. Install This Checkout for Nomos Use in Other Repositories
+
+If your goal is to work on `nomos-sdd` once and then use `specify nomos ...` from other repositories without activating `.venv`, prefer the local tool-install flow:
+
+```bash
+./tools/install-nomos-local.sh
+```
+
+That script wraps:
+
+```bash
+uv tool install --from /path/to/nomos-sdd specify-cli
+```
+
+For PowerShell users:
+
+```powershell
+.\tools\install-nomos-local.ps1
+```
+
+This is different from the editable venv flow above:
+
+- editable install is for iterating inside this checkout
+- `uv tool install --from ...` is for exposing `specify` in your user environment
+
 ## 4. Invoke with uvx Directly From Git (Current Branch)
 
 `uvx` can run from a local path (or a Git ref) to simulate user flows:
