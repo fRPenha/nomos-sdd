@@ -94,11 +94,33 @@ O Nomos atual introduz uma camada local de trabalho dentro do repositório:
 
 1. inicializa `.nomos/`;
 2. registra conhecimento do projeto em `.nomos/project/`;
-3. cria demandas em `.nomos/demands/<demand-id>/`;
-4. gera arquivos Markdown e JSON base;
-5. produz um `agent-package.md` inicial para consumo por um agente implementador.
+3. organiza descoberta em `.nomos/discovery/`;
+4. organiza backlog em `.nomos/backlog/`;
+5. organiza planejamento em `.nomos/planning/`;
+6. cria demandas em `.nomos/demands/<demand-id>/`;
+7. produz um `agent-package.md` inicial para consumo por um agente implementador.
 
-Nesta fase, ele é um **MVP operacional**: ainda não executa entrevista avançada, análise de impacto automática sofisticada ou exportação oficial, mas já estabelece a estrutura que vai sustentar essas capacidades.
+Nesta fase, ele continua sendo um **método guiado por agentes**: não executa descoberta automática inteligente, mas já fornece trilho, templates e checkpoints para transformar uma ideia ampla em demandas implementáveis.
+
+## Fluxo recomendado
+
+```text
+Ideia ampla
+↓
+Discovery
+↓
+Backlog
+↓
+Planning
+↓
+Demand
+↓
+Specification
+↓
+Agent Package
+↓
+Implementation
+```
 
 ## Comandos iniciais
 
@@ -117,6 +139,22 @@ specify nomos init --profile advpl
 ```
 
 Usa um perfil inicial para registrar contexto do projeto em `.nomos/project/profile.json`. Nesta fase, o perfil ainda é simples, mas já prepara o terreno para comportamentos mais especializados.
+
+### Inicializar a camada Discovery / Backlog / Planning
+
+```bash
+specify nomos planning init
+```
+
+Cria os artefatos base em `.nomos/discovery/`, `.nomos/backlog/` e `.nomos/planning/`.
+
+### Verificar o status da camada de planejamento
+
+```bash
+specify nomos planning status
+```
+
+Mostra quais diretórios e artefatos já existem, quais estão ausentes e qual é o próximo passo sugerido.
 
 ### Criar uma nova demanda
 
@@ -177,6 +215,7 @@ Depois disso, em outro repositório:
 ```bash
 cd ~/Projetos/RCA-Navigator
 specify nomos init
+specify nomos planning init
 specify nomos demand create minha-demanda
 ```
 
@@ -226,6 +265,31 @@ Após `specify nomos init`, a estrutura inicial é:
 └── current
 ```
 
+Após `specify nomos planning init`, o workspace passa a incluir:
+
+```text
+.nomos/
+├── project/
+├── discovery/
+│   ├── project-snapshot.md
+│   ├── current-architecture.md
+│   ├── target-architecture.md
+│   ├── risks-and-constraints.md
+│   └── open-questions.md
+├── backlog/
+│   ├── backlog.md
+│   ├── demand-map.md
+│   ├── dependency-map.md
+│   └── readiness-criteria.md
+├── planning/
+│   ├── product-brief.md
+│   ├── roadmap.md
+│   ├── next-demand.md
+│   └── agent-planning-brief.md
+├── demands/
+└── current
+```
+
 Ao criar uma demanda, o Nomos gera:
 
 ```text
@@ -263,6 +327,16 @@ Ela representa um problema, mudança ou funcionalidade que precisa ser preparada
 - plano de implementação;
 - tarefas;
 - pacote de handoff.
+
+## O que entra em Discovery, Backlog e Planning
+
+Antes de criar uma demanda específica, o Nomos agora separa o raciocínio em três camadas:
+
+- `discovery/`: fotografia do projeto, arquitetura atual, arquitetura desejada, riscos, restrições e perguntas em aberto;
+- `backlog/`: mapa de demandas candidatas, dependências, ordem de implementação e critérios de prontidão;
+- `planning/`: resumo executivo, roadmap, próxima demanda recomendada e briefing compacto para agentes.
+
+Essa separação reduz a quantidade de tokens que um agente precisa gastar para descobrir o projeto do zero em cada sessão.
 
 ## O que é o `agent-package.md`
 
