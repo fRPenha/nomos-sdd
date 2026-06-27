@@ -18,15 +18,37 @@ nomos_app = typer.Typer(
     add_completion=False,
 )
 
+planning_app = typer.Typer(
+    name="planning",
+    help="Manage Nomos discovery/backlog/planning artifacts",
+    add_completion=False,
+)
+
 demand_app = typer.Typer(
     name="demand",
     help="Manage Nomos demand workspaces",
     add_completion=False,
 )
+nomos_app.add_typer(planning_app, name="planning")
 nomos_app.add_typer(demand_app, name="demand")
 
 _DEMAND_ID_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
 _DEFAULT_PROFILE = "generic"
+_PLANNING_FILE_MAP = {
+    "discovery/project-snapshot.md": "discovery/project-snapshot.md",
+    "discovery/current-architecture.md": "discovery/current-architecture.md",
+    "discovery/target-architecture.md": "discovery/target-architecture.md",
+    "discovery/risks-and-constraints.md": "discovery/risks-and-constraints.md",
+    "discovery/open-questions.md": "discovery/open-questions.md",
+    "backlog/backlog.md": "backlog/backlog.md",
+    "backlog/demand-map.md": "backlog/demand-map.md",
+    "backlog/dependency-map.md": "backlog/dependency-map.md",
+    "backlog/readiness-criteria.md": "backlog/readiness-criteria.md",
+    "planning/product-brief.md": "planning/product-brief.md",
+    "planning/roadmap.md": "planning/roadmap.md",
+    "planning/next-demand.md": "planning/next-demand.md",
+    "planning/agent-planning-brief.md": "planning/agent-planning-brief.md",
+}
 
 
 def _fail(message: str) -> None:
@@ -151,6 +173,46 @@ def _initialize_project_files(repo_root: Path, profile: str, *, force: bool) -> 
         _write_text_file(root / destination, content, force=force)
 
 
+def _require_nomos_workspace(repo_root: Path) -> Path:
+    nomos_root = _nomos_root(repo_root)
+    if not (nomos_root / "project").is_dir():
+        _fail("Nomos is not initialized in this repository. Run 'specify nomos init' first.")
+    return nomos_root
+
+
+def _initialize_planning_files(repo_root: Path, *, force: bool) -> Path:
+    templates_dir = _require_nomos_templates_dir()
+    nomos_root = _require_nomos_workspace(repo_root)
+
+    for relative_dir in (
+        Path("discovery"),
+        Path("backlog"),
+        Path("planning"),
+    ):
+        (nomos_root / relative_dir).mkdir(parents=True, exist_ok=True)
+
+    replacements = _project_replacements(repo_root, _load_profile(repo_root))
+    for template_name, destination in _PLANNING_FILE_MAP.items():
+        content = _render_template(templates_dir / template_name, replacements)
+        _write_text_file(nomos_root / destination, content, force=force)
+
+    return nomos_root
+
+
+def _relative_nomos_paths() -> list[str]:
+    return [f".nomos/{destination}" for destination in _PLANNING_FILE_MAP.values()]
+
+
+def _file_state_label(path: Path) -> str:
+    if not path.exists():
+        return "ausente"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return "presente"
+    return "presente (vazio)" if text.strip() == "" else "presente"
+
+
 def _initialize_demand_files(
     repo_root: Path,
     demand_id: str,
@@ -161,9 +223,7 @@ def _initialize_demand_files(
     if not _DEMAND_ID_RE.match(demand_id):
         _fail("Demand id must be kebab-case using lowercase letters, numbers, and hyphens.")
 
-    nomos_root = _nomos_root(repo_root)
-    if not (nomos_root / "project").is_dir():
-        _fail("Nomos is not initialized in this repository. Run 'specify nomos init' first.")
+    nomos_root = _require_nomos_workspace(repo_root)
 
     demand_dir = nomos_root / "demands" / demand_id
     if demand_dir.exists() and not force:
@@ -240,6 +300,96 @@ def demand_create(
     console.print(
         "[dim]Use agent-package.md as the primary handoff file for Codex, Claude Code, Gemini CLI, or another implementation agent.[/dim]"
     )
+
+
+@planning_app.command("init")
+def planning_init(
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Overwrite existing discovery/backlog/planning templates inside .nomos/",
+    ),
+) -> None:
+    """Initialize Nomos discovery, backlog, and planning artifacts."""
+    repo_root = _require_repo_root()
+    nomos_root = _initialize_planning_files(repo_root, force=force)
+
+    console.print(
+        f"[green]✓[/green] Planning workspace ready at [cyan]{nomos_root}[/cyan]"
+    )
+    console.print(
+        "[dim]Discovery, backlog, and planning artifacts are ready for an agent to structure the project before creating a specific demand.[/dim]"
+    )
+
+
+@planning_app.command("status")
+def planning_status() -> None:
+    """Show Nomos discovery/backlog/planning scaffold status."""
+    repo_root = _require_repo_root()
+    nomos_root = _nomos_root(repo_root)
+
+    if not nomos_root.exists():
+        console.print("[yellow]Nomos workspace:[/yellow] ausente")
+        console.print("Próximo passo sugerido: execute [cyan]specify nomos init[/cyan].")
+        return
+
+    console.print(f"[cyan]Workspace:[/cyan] {nomos_root}")
+    console.print(
+        f"[cyan].nomos existe:[/cyan] {'sim' if nomos_root.exists() else 'não'}"
+    )
+
+    discovery_dir = nomos_root / "discovery"
+    backlog_dir = nomos_root / "backlog"
+    planning_dir = nomos_root / "planning"
+    console.print(f"[cyan]Discovery:[/cyan] {'presente' if discovery_dir.is_dir() else 'ausente'}")
+    console.print(f"[cyan]Backlog:[/cyan] {'presente' if backlog_dir.is_dir() else 'ausente'}")
+    console.print(f"[cyan]Planning:[/cyan] {'presente' if planning_dir.is_dir() else 'ausente'}")
+
+    present: list[str] = []
+    missing: list[str] = []
+    for relative_path in _relative_nomos_paths():
+        target = repo_root / relative_path
+        if target.exists():
+            present.append(relative_path)
+        else:
+            missing.append(relative_path)
+
+    console.print("\n[bold]Presentes[/bold]")
+    if present:
+        for relative_path in present:
+            console.print(
+                f"- {relative_path} — {_file_state_label(repo_root / relative_path)}"
+            )
+    else:
+        console.print("- nenhum artefato encontrado")
+
+    console.print("\n[bold]Ausentes[/bold]")
+    if missing:
+        for relative_path in missing:
+            console.print(f"- {relative_path}")
+    else:
+        console.print("- nenhum")
+
+    agent_brief = nomos_root / "planning" / "agent-planning-brief.md"
+    next_demand = nomos_root / "planning" / "next-demand.md"
+    console.print(
+        f"\n[cyan]planning/agent-planning-brief.md:[/cyan] {_file_state_label(agent_brief)}"
+    )
+    console.print(
+        f"[cyan]planning/next-demand.md:[/cyan] {_file_state_label(next_demand)}"
+    )
+
+    if not (nomos_root / "project").is_dir():
+        next_step = "execute specify nomos init"
+    elif missing:
+        next_step = "execute specify nomos planning init"
+    else:
+        next_step = (
+            "preencha discovery/, backlog/ e planning/, depois use planning/next-demand.md para decidir qual demanda criar"
+        )
+
+    console.print(f"\n[bold]Próximo passo sugerido[/bold]")
+    console.print(f"- {next_step}")
 
 
 def register(app: typer.Typer) -> None:
